@@ -4,8 +4,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development"
+    "build": "ng build --configuration=production --output-hashing=none --source-map",
+    "package": "cat dist/snake-web-component/{runtime,polyfills,main}.js > web/snake-web-component.js",
+    "deploy": "ngh --dir web",
+    "watch": "ng build --watch --configuration development",
+    "explore": "source-map-explorer dist/**/*.js"
   },
   "private": true,
   "dependencies": {
@@ -13,18 +16,19 @@
     "@angular/common": "^14.1.0",
     "@angular/compiler": "^14.1.0",
     "@angular/core": "^14.1.0",
+    "@angular/elements": "^14.1.0",
     "@angular/forms": "^14.1.0",
     "@angular/platform-browser": "^14.1.0",
     "@angular/platform-browser-dynamic": "^14.1.0",
     "@angular/router": "^14.1.0",
     "rxjs": "~7.5.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.11.4"
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^14.1.0",
     "@angular/cli": "~14.1.0",
     "@angular/compiler-cli": "^14.1.0",
+    "source-map-explorer": "^2.5.2",
     "typescript": "~4.7.2"
   }
 }
