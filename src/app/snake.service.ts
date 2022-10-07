@@ -13,13 +13,10 @@ export class SnakeService {
 
   constructor() { }
 
-  bodyLength() {
-    return this._snakeBody.value.length;
-  }
-
-  snakeHead() {
-    return this._snakeBody.value[0];
-  }
+  bodyLength = () => this._snakeBody.value.length;
+  snakeHead = () => this._snakeBody.value[0];
+  equal = (pos1: Pos, pos2: Pos) => (pos1.x === pos2.x && pos1.y === pos2.y);
+  intersect = () => this.onSnake(this._snakeBody.value[0], { ignoreHead: true });
 
   update(direction: Pos) {
     this.addSegments();
@@ -32,19 +29,11 @@ export class SnakeService {
     this._snakeBody.next(body);
   }
 
-  equal(pos1: Pos, pos2: Pos) {
-    return (pos1.x === pos2.x && pos1.y === pos2.y);
-  }
-
   onSnake(pos: Pos, { ignoreHead = false } = {}) {
     return this._snakeBody.value.some((seg: Pos, index: number) => {
       if (ignoreHead && index == 0) return false;
       return this.equal(seg, pos);
     });
-  }
-
-  intersect() {
-    return this.onSnake(this._snakeBody.value[0], { ignoreHead: true })
   }
 
   addSegments() {

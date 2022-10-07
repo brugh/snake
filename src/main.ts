@@ -1,13 +1,9 @@
+import 'zone.js';
 import { enableProdMode } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-import { AppModule } from './app/app.module';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { MyComponent } from './app/my.component';
 import { environment } from './environments/environment';
 
-if (environment.production) {
-  enableProdMode();
-}
+environment.production && enableProdMode();
 
-// platformBrowserDynamic().bootstrapModule(AppModule).catch(err => console.error(err));
-
-platformBrowserDynamic().bootstrapModule(AppModule, { ngZone: 'noop' }).catch(err => console.error(err));
+bootstrapApplication(MyComponent)

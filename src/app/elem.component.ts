@@ -3,6 +3,7 @@ import { Pos } from './my.models';
 
 @Component({
   selector: 'elem',
+  standalone: true,
   template: `
     <ng-container #elem ></ng-container>
   `,

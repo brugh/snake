@@ -1,17 +1,21 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { ElemComponent } from './elem.component';
 import { FoodService } from './food.service';
 import { GRID, Pos, SPEED } from './my.models';
 import { SnakeService } from './snake.service';
 
 @Component({
   selector: 'app-root',
+  imports: [CommonModule, ElemComponent],
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div id="gameboard" #gameboard>
       <ng-container *ngFor="let s of snake.snakeBody$ | async">
         <elem [pos]="s"></elem>
       </ng-container>
-      <elem [type]="'food'" [pos]="food.foodPos$ | async"></elem>
+      <elem type="food" [pos]="food.foodPos$ | async"></elem>
     </div>
   `,
   styles: [`
@@ -34,13 +38,19 @@ import { SnakeService } from './snake.service';
   `]
 })
 export class MyComponent implements OnInit {
-  @HostListener('document:keydown', ['$event']) keyDown = (event: KeyboardEvent) => this.checkKey(event);
   @ViewChild('gameboard', { static: false }) gameboard?: ElementRef<HTMLElement>;
+  @HostListener('document:keydown', ['$event']) keyDown =
+    (event: KeyboardEvent) => this.checkKey(event);
+  @HostListener('touchstart', ['$event'])
+  @HostListener('touchend', ['$event'])
+  @HostListener('touchcancel', ['$event']) handleTouch =
+    (event: TouchEvent) => this.checkTouch(event);
 
   direction: Pos = { x: 0, y: 0 };
   previousDir: Pos = { x: 0, y: 0 };
   previous = 0;
   gameover = false;
+  touch1 = { x: 0, y: 0, time: 0 };
 
   constructor(
     private changeDetection: ChangeDetectorRef,
@@ -88,24 +98,59 @@ export class MyComponent implements OnInit {
     )
   }
 
-  checkKey(event: KeyboardEvent) {
-    switch (event.key) {
-      case 'ArrowUp':
+  move(dir: string) {
+    switch (dir) {
+      case 'up':
         if (this.previousDir.y !== 0) break;
         this.direction = { x: 0, y: -1 }
         break;
-      case 'ArrowDown':
+      case 'down':
         if (this.previousDir.y !== 0) break;
         this.direction = { x: 0, y: 1 }
         break;
-      case 'ArrowLeft':
+      case 'left':
         if (this.previousDir.x !== 0) break;
         this.direction = { x: -1, y: 0 }
         break;
-      case 'ArrowRight':
+      case 'right':
         if (this.previousDir.x !== 0) break;
         this.direction = { x: 1, y: 0 }
         break;
     }
+  }
+
+  checkKey(event: KeyboardEvent) {
+    switch (event.key) {
+      case 'ArrowUp': this.move('up'); break;
+      case 'ArrowDown': this.move('down'); break;
+      case 'ArrowLeft': this.move('left'); break;
+      case 'ArrowRight': this.move('right'); break;
+    }
   };
+
+  checkTouch(event: TouchEvent) {
+    var touch = event.touches[0] || event.changedTouches[0]; // skip multitouch
+    switch (event.type) {
+      case 'touchstart':
+        this.touch1 = { x: touch.pageX, y: touch.pageY, time: event.timeStamp };
+        break;
+      case 'touchend':
+        const dx = touch.pageX - this.touch1.x,
+          dy = touch.pageY - this.touch1.y,
+          dt = event.timeStamp - this.touch1.time
+        if (dt > 500) break; // long press
+        if (Math.abs(dx) > Math.abs(dy)) { // horizontal
+          if (dx > 0) return this.move('right')
+          return this.move('left');
+        } else {
+          if (dy > 0) return this.move('down')
+          return this.move('up');
+        }
+        break;
+      case 'touchmove': 
+        event.preventDefault();
+        break;
+    }
+  }
 }
+
