@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, AfterViewInit, OnInit, ViewChild } from '@angular/core';
 import { ElemComponent } from './elem.component';
 import { FoodService } from './food.service';
 import { GRID, Pos, SPEED } from './my.models';
@@ -11,7 +11,7 @@ import { SnakeService } from './snake.service';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div id="gameboard" #gameboard>
+    <div id="gameboard" #gameboard [style.--gridsize]="gridsize">
       <ng-container *ngFor="let s of snake.snakeBody$ | async">
         <elem [pos]="s"></elem>
       </ng-container>
@@ -23,9 +23,9 @@ import { SnakeService } from './snake.service';
       background-color: #CCC;
       width: 100vmin;
       height: 100vmin;
-      display: grid; 
-      grid-template-rows: repeat(${GRID}, 1fr);
-      grid-template-columns: repeat(${GRID}, 1fr);
+      display: grid;
+      grid-template-columns: repeat(var(--gridsize), 1fr);
+      grid-template-rows: repeat(var(--gridsize), 1fr);
     }
     .snake {
       background-color: hsl(200, 100%, 50%);
@@ -51,6 +51,8 @@ export class MyComponent implements OnInit {
   previous = 0;
   gameover = false;
   touch1 = { x: 0, y: 0, time: 0 };
+  gridsize = GRID;
+  speed = SPEED;
 
   constructor(
     private changeDetection: ChangeDetectorRef,
@@ -71,7 +73,7 @@ export class MyComponent implements OnInit {
     }
     window.requestAnimationFrame((currentTime) => this.animate(currentTime));
     const since = (currentTime - this.previous) / 1000;
-    if (since < 1 / SPEED) return;
+    if (since < 1 / this.speed) return;
     this.previous = currentTime;
     this.update();
   }
@@ -147,7 +149,7 @@ export class MyComponent implements OnInit {
           return this.move('up');
         }
         break;
-      case 'touchmove': 
+      case 'touchmove':
         event.preventDefault();
         break;
     }

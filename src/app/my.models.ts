@@ -5,7 +5,3 @@ export const EXPAND = 3;
 export interface Pos {
   x: number, y: number
 }
-
-export default {
-  GRID, SPEED, EXPAND
-}
