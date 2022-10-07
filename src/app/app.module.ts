@@ -1,11 +1,10 @@
-import { Injector, NgModule } from '@angular/core';
-import { createCustomElement } from '@angular/elements';
+import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { MyComponent } from './my.component';
-import { SnakeComponent } from './snake.component';
+import { ElemComponent } from './elem.component';
 
 @NgModule({
-  declarations: [MyComponent, SnakeComponent],
+  declarations: [MyComponent, ElemComponent],
   imports: [ BrowserModule ],
   providers: [],
   bootstrap: [MyComponent]

@@ -1,21 +1,17 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
-
-const GRID = 21;
-const SPEED = 5;
-const EXPAND = 3;
-interface Pos {
-  x: number, y: number
-}
+import { FoodService } from './food.service';
+import { GRID, Pos, SPEED } from './my.models';
+import { SnakeService } from './snake.service';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div id="gameboard" #gameboard>
-      <ng-container *ngFor="let s of snakeBody">
+      <ng-container *ngFor="let s of snake.snakeBody$ | async">
         <elem [pos]="s"></elem>
       </ng-container>
-      <elem #food [type]="'food'" [pos]="foodPos"></elem>
+      <elem [type]="'food'" [pos]="food.foodPos$ | async"></elem>
     </div>
   `,
   styles: [`
@@ -44,13 +40,13 @@ export class MyComponent implements OnInit {
   direction: Pos = { x: 0, y: 0 };
   previousDir: Pos = { x: 0, y: 0 };
   previous = 0;
-  key = '';
-  snakeBody: Pos[] = [{ x: Math.round(GRID / 2), y: Math.round(GRID / 2) }];
-  foodPos: Pos = this.newPos();
   gameover = false;
-  newSegments = 0;
 
-  constructor(private changeDetection: ChangeDetectorRef) { }
+  constructor(
+    private changeDetection: ChangeDetectorRef,
+    public snake: SnakeService,
+    public food: FoodService
+  ) { }
 
   ngOnInit(): void {
     this.animate(0);
@@ -58,8 +54,8 @@ export class MyComponent implements OnInit {
 
   animate(currentTime: number) {
     if (this.gameover) {
-      if (confirm(`Game over! Your score is ${this.snakeBody.length}.\nPress OK to restart.`)) {
-        window.location = window.location; 
+      if (confirm(`Game over! Your score is ${this.snake.bodyLength()}.\nPress OK to restart.`)) {
+        window.location = window.location;
       }
       return;
     }
@@ -72,61 +68,17 @@ export class MyComponent implements OnInit {
 
   update() {
     this.previousDir = this.direction;
-    this.addSegments();
 
-    this.snakeBody = [
-      {
-        x: this.snakeBody[0].x + this.direction.x,
-        y: this.snakeBody[0].y + this.direction.y
-      },
-      ...this.snakeBody
-    ];
-    this.snakeBody.pop();
+    this.snake.update(this.direction);
+    this.food.update();
 
-    if (this.onSnake(this.foodPos)) {
-      this.newSegments = EXPAND;
-      this.foodPos = this.newPos();
-    }
-
-    this.checkState();
+    this.gameover = this.checkState();
 
     this.changeDetection.detectChanges();
   }
 
-
-  newPos() {
-    const rnd = () => {
-      return { x: Math.floor(Math.random() * 21 + 1), y: Math.floor(Math.random() * 21 + 1) };
-    };
-    let p: Pos;
-    do { p = rnd(); } while (this.onSnake(p));
-    return p;
-  }
-
-  onSnake(pos: Pos, { ignoreHead = false } = {}) {
-    return this.snakeBody.some((seg: Pos, index: number) => {
-      if (ignoreHead && index == 0) return false;
-      return this.equal(seg, pos);
-    });
-  }
-
-  addSegments() {
-    for (let i = 0; i < this.newSegments; i++) {
-      this.snakeBody.push({ ...this.snakeBody[this.snakeBody.length - 1] });
-    }
-    this.newSegments = 0;
-  }
-
-  equal(pos1: Pos, pos2: Pos) {
-    return (pos1.x === pos2.x && pos1.y === pos2.y);
-  }
-
   checkState() {
-    this.gameover = this.outsizeGrid(this.snakeBody[0]) || this.intersect();
-  }
-
-  intersect() {
-    return this.onSnake(this.snakeBody[0], { ignoreHead: true })
+    return this.outsizeGrid(this.snake.snakeHead()) || this.snake.intersect();
   }
 
   outsizeGrid(pos: Pos) {
